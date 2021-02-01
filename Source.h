@@ -18,7 +18,7 @@ class round {
 		class round* next;
 };
 
-class round_list {
+class roundList {
 	public:
 		char numRounds;
 		float currentHandicap;
@@ -27,7 +27,7 @@ class round_list {
 		float scoringAvg;
 		float overallPar3_Avg;
 		float overallPar4_Avg;
-		float overallPar6_Avg;
+		float overallPar5_Avg;
 
 		class round* head;
 		class round* tail;
