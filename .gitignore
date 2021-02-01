@@ -3,6 +3,6 @@
 
 #Except for...
 !.gitignore
-!.cpp
-!.h
-!.csv
+!*.cpp
+!*.h
+!*.csv
