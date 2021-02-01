@@ -1,34 +1,36 @@
 #pragma once
 
-struct round {
-	char course[100];
-	int slope;
-	int rating;
-	char* par;
-	char* score;
-	char* putts;
-	float puttsPerHole;
-	char roundScoringAvg;
-	float par3Avg;
-	float par4Avg;
-	float par5Avg;
-	
-	struct round* prev;
-	struct round* next;
+class round {
+	public:
+		char course[100];
+		int slope;
+		int rating;
+		char* par;
+		char* score;
+		char* putts;
+		float puttsPerHole;
+		char roundScoringAvg;
+		float par3Avg;
+		float par4Avg;
+		float par5Avg;
+
+		class round* prev;
+		class round* next;
 };
 
-struct round_list {
-	char numRounds;
-	float currentHandicap;
-	char validHandicap;
-	float overallPuttsPerHole;
-	float scoringAvg;
-	float overallPar3_Avg;
-	float overallPar4_Avg;
-	float overallPar6_Avg;
+class round_list {
+	public:
+		char numRounds;
+		float currentHandicap;
+		char validHandicap;
+		float overallPuttsPerHole;
+		float scoringAvg;
+		float overallPar3_Avg;
+		float overallPar4_Avg;
+		float overallPar6_Avg;
 
-	struct round* head;
-	struct round* tail;
+		class round* head;
+		class round* tail;
 };
 
 /*Loads the main menu and directs user to selected submenu.*/

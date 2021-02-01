@@ -37,7 +37,7 @@ void mainMenu()
 {
 	char choice;
 	system("cls");
-	cout << "Welcome to Ryan's Handicap Calculator (version 0.1)";
+	cout << "Welcome to Ryan's Golf Stats App (version 0.1)";
 	cout << "\nPlease select an option from the list below.";
 	cout << "\n1. Enter new round";
 	cout << "\n2. Check handicap";
