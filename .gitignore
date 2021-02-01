@@ -1,0 +1,8 @@
+#Ignore everything
+*
+
+#Except for...
+!.gitignore
+!.cpp
+!.h
+!.csv
