@@ -25,9 +25,9 @@ class roundList {
 		char validHandicap;
 		float overallPuttsPerHole;
 		float scoringAvg;
-		float overallPar3_Avg;
-		float overallPar4_Avg;
-		float overallPar5_Avg;
+		float overallPar3Avg;
+		float overallPar4Avg;
+		float overallPar5Avg;
 
 		class round* head;
 		class round* tail;
