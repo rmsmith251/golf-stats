@@ -31,8 +31,8 @@ struct round_list {
 	struct round* tail;
 };
 
-/*Loads the main menu and returns the user's selection.*/
-char mainMenu();
+/*Loads the main menu and directs user to selected submenu.*/
+void mainMenu();
 
 /*Allows the user to add a new round in and removes the oldest round
 if there are more than 20*/
