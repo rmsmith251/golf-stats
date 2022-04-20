@@ -1,3 +1,3 @@
 #GolfStats
 
-//TBD
+This is primarily going to be used for me as an entry-level project in Golang. I enjoy golf and hate how you have to pay for a USGA handicap so my plan is to build this out as a CLI program to chart stats/handicaps over time and analyze how I'm playing. I haven't really been playing much but hey, maybe this will get me out there. I hope to extend this with the use of charts in the future as well.
