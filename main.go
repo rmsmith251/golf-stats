@@ -1,13 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"os/exec"
+	"runtime"
+	"strconv"
+	"strings"
 	"time"
 
 	"encoding/json"
 	"io/ioutil"
 
-	// "github.com/google/uuid"
+	"github.com/google/uuid"
 )
 
 type (
@@ -51,55 +57,155 @@ type (
 	}
 )
 
+var clear map[string]func() //create a map for storing clear funcs
 
-
-func (hole Hole) calculateAdjScore() Hole {
-	adj := hole.Score + hole.HandicapStrokes
-	max_score := hole.Par + hole.HandicapStrokes + 2
-	hole.AdjustedScore = max_score
-	if adj < max_score {
-		hole.AdjustedScore = adj
-	}
-	return hole
+func init() {
+    clear = make(map[string]func()) //Initialize it
+    clear["linux"] = func() { 
+        cmd := exec.Command("clear") //Linux example, its tested
+        cmd.Stdout = os.Stdout
+        cmd.Run()
+    }
+    clear["windows"] = func() {
+        cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested 
+        cmd.Stdout = os.Stdout
+        cmd.Run()
+    }
 }
 
-func (round Round) scoreDifferentialCalculation() Round {
+func CallClear() {
+    value, ok := clear[runtime.GOOS] //runtime.GOOS -> linux, windows, darwin etc.
+    if ok { //if we defined a clear func for that platform:
+        value()  //we execute it
+    } else { //unsupported platform
+        panic("Your platform is unsupported! I can't clear terminal screen :(")
+    }
+}
+
+
+func (hole *Hole) calculateAdjScore() {
+	adj := hole.Score + hole.HandicapStrokes
+	maxScore := hole.Par + hole.HandicapStrokes + 2
+	hole.AdjustedScore = maxScore
+	if adj < maxScore {
+		hole.AdjustedScore = adj
+	}
+}
+
+func (round *Round) scoreDifferentialCalculation() {
 	if round.AdjGrossScore == 0 || round.Score == 0 {
-		adj_score := 0
-		gross_score := 0
-		for idx, hole := range round.Holes {
-			gross_score += hole.Score
-			round.Holes[idx] = hole.calculateAdjScore()
-			adj_score += round.Holes[idx].AdjustedScore
+		adjScore := 0
+		grossScore := 0
+		for _, hole := range round.Holes {
+			grossScore += hole.Score
+			hole.calculateAdjScore()
+			adjScore += hole.AdjustedScore
 		}
-		round.Score, round.AdjGrossScore = gross_score, adj_score
+		round.Score, round.AdjGrossScore = grossScore, adjScore
 	}
 	if len(round.Holes) < 18 {
 		fmt.Println("Unable to calculate handicap for incomplete rounds")
 	} else {
 		round.ScoreDiff = (float32(round.AdjGrossScore) - round.Rating) * (float32(113) / float32(round.Slope))
 	}
-	return round
 }
 
-func (stats Stats) CalculateHandicap() Stats {
+func (stats *Stats) CalculateHandicap() {
 	if stats.NumRounds < 3 {
 		fmt.Println("Not enough rounds. Need", 3 - stats.NumRounds, "more to calculate a handicap")
 	}
 	// dt := time.Now()
 	for idx, round := range stats.Rounds {
 		if round.ScoreDiff == 0 {
-			round = stats.Rounds[idx].scoreDifferentialCalculation()
+			round.scoreDifferentialCalculation()
 			stats.Rounds[idx] = round
 		}
+		fmt.Println(round.ScoreDiff)
 	}
 	// handicap := Handicap {}
-
-
-	return stats
+	fmt.Println(stats.Rounds[0].ScoreDiff)
 }
 
-func (stats Stats) dumpData() {
+func getUserInput(printString string) string{
+	fmt.Println(printString)
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("An error occured when reading input. Please try again.")
+		return ""
+	}
+	input = strings.TrimSuffix(input, "\n")
+	return input
+}
+
+func stringToInt(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return i
+}
+
+func stringToFloat(s string) float32 {
+	i, err := strconv.ParseFloat(s, 32)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return float32(i)
+}
+
+func stringToBool(s string) bool {
+	i, err := strconv.ParseBool(s)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return i
+}
+
+func addNewHole(holeNum int, addingPutts string, hdcpStrokes string) Hole {
+	hole := Hole{}
+	hole.Number = holeNum
+	text := "Hole " + strconv.Itoa(holeNum) + " "
+	hole.Score = stringToInt(getUserInput(text + "score?"))
+	hole.Par = stringToInt(getUserInput(text + "par?"))
+	if strings.Contains(addingPutts, "y") {
+		hole.Putts = stringToInt(getUserInput(text + "putts?"))
+	}
+	if strings.Contains(hdcpStrokes, "y") {
+		hole.HandicapStrokes = stringToInt(getUserInput(text + "handicap strokes?"))
+	}
+	CallClear()
+	return hole
+}
+
+func addNewRound() Round {
+	round := Round{}
+	round.UUID = uuid.New().String()
+	round.Course = getUserInput("What is the course name?")
+	round.Slope = stringToInt(getUserInput("What is the course slope?"))
+	round.Rating = stringToFloat(getUserInput("What is the course rating?"))
+	holes := stringToInt(getUserInput("How many holes do you want to add?"))
+	addingPutts := getUserInput("Are you adding putts? (y/n)")
+	hdcpStrokes := getUserInput("Do you have handicap strokes? (y/n)")
+	CallClear()
+	i := 1
+	for {
+		hole := addNewHole(i, addingPutts, hdcpStrokes)
+		round.Holes = append(round.Holes, hole)
+
+		if i == holes {
+			break
+		}
+		i++
+	}
+	return round
+}
+
+func deleteRound(uid string) {
+	
+}
+
+func (stats *Stats) dumpData() {
 	content, err := json.Marshal(stats)
 	if err != nil {
 		fmt.Println(err)
@@ -124,11 +230,19 @@ func readData() Stats {
 }
 
 func main() {
+	// test pointers to see if that's what I wanted with being able to change
+	// values without having to reassign
 	stats := readData()
+	newRound := getUserInput("Would you like to enter a new round?")
+	if strings.Contains(newRound, "y") {
+		stats.Rounds := append(stats.Rounds, addNewRound())
+		fmt.Println(round)
+	}
 	// uid := uuid.New()
 	// uuid := uid.String()
 	stats.CalculateHandicap()
 	// fmt.Println(stats.Rounds[0])
+	fmt.Println(stats.Rounds[0].ScoreDiff)
 	fmt.Println(stats)
 	stats.dumpData()
 }
